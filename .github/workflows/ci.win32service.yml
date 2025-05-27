@@ -1,0 +1,32 @@
+name: Win32service CI
+
+on:
+  push:
+    paths:
+      - 'resources/win32service/**'
+      - '.github/workflows/ci.win32service.yml'
+  pull_request:
+    paths:
+      - 'resources/win32service/**'
+      - '.github/workflows/ci.win32service.yml'
+
+jobs:
+  buildandTest:
+    runs-on: windows-latest
+    defaults:
+      run:
+        shell: pwsh
+        
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Build Win32service
+        run: |
+          ./resources/win32service/build.ps1 -Test -InstallDsc -Verbose
+
+      - name: Upload application
+        uses: actions/upload-artifact@v4
+        with:
+          name: win32service
+          path: ./resources/win32service/output
