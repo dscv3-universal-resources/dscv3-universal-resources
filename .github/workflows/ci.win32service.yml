@@ -12,6 +12,12 @@ on:
       - '.github/workflows/ci.win32service.yml'
       - 'sharedScripts/buildHelpers/**'
 
+permissions:
+  contents: write
+  packages: read
+  pull-requests: read
+  issues: read
+
 jobs:
   buildandTest:
     runs-on: windows-latest
