@@ -6,6 +6,8 @@
 
 Want to contribute to the project? We'd love to have you! Visit our [contributing.md](CONTRIBUTING.md) for a jump start.
 
+Do you like the work what you see in this repository? Click the star at the top of the page 🌟
+
 ## Purpose
 
 The purpose of this project is to showcase different DSC v3 resources and their implementation using the programming language of choice. DSC v3 allows you to write any DSC resource in the programming language you prefer. By creating different DSC v3 resources in these programming languages, we aim to accelerate the adoption of DSC v3 across diverse technical environments and teams with varying language preferences.
