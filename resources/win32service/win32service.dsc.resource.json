@@ -1,0 +1,75 @@
+{
+    "$schema": "https://aka.ms/dsc/schemas/v3/bundled/resource/manifest.json",
+    "type": "DSCResources.Windows/Win32Service",
+    "description": "Manage Windows services",
+    "version": "0.1.0",
+    "get": {
+        "executable": "win32service",
+        "args": [
+            "config",
+            "get",
+            {
+                "jsonInputArg": "--input",
+                "mandatory": true
+            }
+        ]
+    },
+    "set": {
+        "executable": "win32service",
+        "args": [
+            "config",
+            "set",
+            {
+                "jsonInputArg": "--input",
+                "mandatory": true
+            }
+        ]
+    },
+    "delete": {
+        "executable": "win32service",
+        "args": [
+            "config",
+            "delete",
+            {
+                "jsonInputArg": "--input",
+                "mandatory": true
+            }
+        ]
+    },
+    "export": {
+        "executable": "win32service",
+        "args": [
+            "config",
+            "export"
+        ]
+    },
+    "whatIf": {
+        "executable": "win32service",
+        "args": [
+            "config",
+            "set",
+            "-w",
+            {
+                "jsonInputArg": "--input",
+                "mandatory": true
+            }
+        ],
+        "return": "state"
+        
+    },
+    "exitCodes": {
+        "0": "Success",
+        "1": "Invalid parameter",
+        "2": "Invalid input",
+        "3": "Service error",
+        "4": "JSON serialization failed"
+    },
+    "schema": {
+        "command": {
+            "executable": "win32service",
+            "args": [
+                "schema"
+            ]
+        }
+    }
+}

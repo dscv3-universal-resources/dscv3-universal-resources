@@ -1,0 +1,133 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: win32service\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2025-05-17 13:00+0200\n"
+"PO-Revision-Date: 2025-05-17 13:00+0200\n"
+"Last-Translator: \n"
+"Language-Team: English\n"
+"Language: en_US\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+# Arguments description
+msgid "about"
+msgstr "Manage Windows services."
+
+msgid "configAbout"
+msgstr "Manage Windows service configurations."
+
+# CLI - Command Descriptions
+msgid "configAboutGet"
+msgstr "Retrieve information about a Windows service."
+
+msgid "configAboutSet"
+msgstr "Set configuration for a Windows service."
+
+msgid "configAboutDelete"
+msgstr "Delete a Windows service configuration."
+
+msgid "configAboutExport"
+msgstr "Export Windows service configurations."
+
+msgid "schemaAbout"
+msgstr "Display the schema for Windows service configurations."
+
+msgid "input"
+msgstr "The Windows Service JSON input."
+
+msgid "whatIf"
+msgstr "Perform a dry run without making changes."
+
+# Main log messages
+msgid "logGetService"
+msgstr "Get configuration for service: {0}"
+
+msgid "logSetService"
+msgstr "Set configuration for service: {0}"
+
+msgid "logDeleteService"
+msgstr "Delete configuration for service: {0}"
+
+msgid "logExportServices"
+msgstr "Export configuration for service"
+
+# Service get messages
+msgid "serviceGetRetrieving"
+msgstr "Retrieving configuration for service: {0}"
+
+msgid "serviceGetStatusError"
+msgstr "Failed to retrieve status for service {0}: {1}"
+
+# Service set messages
+msgid "serviceSetCreatingWithParams"
+msgstr "Creating service '{0}' with parameters: {1}"
+
+msgid "serviceSetCreatedSuccess"
+msgstr "Service '{0}' created successfully."
+
+msgid "serviceSetExistsUpdating"
+msgstr "Service '{0}' already exists. Updating configuration."
+
+msgid "serviceSetUpdatedSuccess"
+msgstr "Service '{0}' updated successfully."
+
+msgid "serviceSetUpdateError"
+msgstr "Failed to update service '{0}': {1}"
+
+# Service delete message
+
+msgid "serviceDeleteRetrieving"
+msgstr "Retrieving service '{0}' for deletion"
+
+msgid "serviceDeleteError"
+msgstr "Failed to delete service '{0}': {1}"
+
+msgid "serviceDeleteStopping"
+msgstr "Stopping service '{0}' before deletion"
+
+msgid "serviceDeleteAlreadyStopped"
+msgstr "Service '{0}' is already stopped"
+
+msgid "serviceDeleteStopError"
+msgstr "Error stopping service '{0}': {1}"
+
+msgid "serviceDeleteDeleting"
+msgstr "Deleting service '{0}'"
+
+msgid "serviceDeleteDeletedSuccess"
+msgstr "Service '{0}' deleted successfully."
+
+
+# Service export messages
+msgid "serviceExportRetrieving"
+msgstr "Retrieving all Windows services"
+
+msgid "serviceExportDetailError"
+msgstr "Error retrieving details for service '{0}': {1}"
+
+msgid "serviceExportError"
+msgstr "Failed to export services: {0}"
+
+
+# JSON Validation
+msgid "jsonParseError"
+msgstr "Invalid JSON input"
+
+msgid "jsonNotObject"
+msgstr "Input JSON must be an object"
+
+msgid "jsonMissingProps"
+msgstr "Missing required properties: {0}"
+
+msgid "jsonParseSuccess"
+msgstr "Parsed JSON input: {0}"
+
+msgid "jsonCheckProperties"
+msgstr "Checking required properties: {0}"
+
+# Credential validation
+msgid "credentialMismatch"
+msgstr "Both username and password must be provided together"
