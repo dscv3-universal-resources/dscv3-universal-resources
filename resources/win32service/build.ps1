@@ -41,7 +41,7 @@ if ($Bootstrap.IsPresent) {
 
         Install-DscExe
     }
-    
+
     if ($OnlyPsModules.IsPresent) {
         # Install Pester
         Install-RequiredPsModule -ModuleName 'Pester' -Version '5.7.1' -TrustRepository
@@ -94,6 +94,7 @@ if ($Build.IsPresent) {
 if ($Test.IsPresent) {
     $pathToTest = Join-Path $root 'resources' 'win32service' 'tests'
 
+    $env:Path += [System.IO.Path]::PathSeparator + (Join-Path $root 'resources' 'win32service' 'output')
     Invoke-Pester -Path $pathToTest -Output Detailed -ErrorAction Stop
 }
 
