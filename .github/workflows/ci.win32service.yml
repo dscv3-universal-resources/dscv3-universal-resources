@@ -5,10 +5,12 @@ on:
     paths:
       - 'resources/win32service/**'
       - '.github/workflows/ci.win32service.yml'
+      - 'sharedScripts/buildHelpers/**'
   pull_request:
     paths:
       - 'resources/win32service/**'
       - '.github/workflows/ci.win32service.yml'
+      - 'sharedScripts/buildHelpers/**'
 
 jobs:
   buildandTest:

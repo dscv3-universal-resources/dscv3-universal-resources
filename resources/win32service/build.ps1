@@ -35,14 +35,14 @@ $root = Split-Path (Split-Path -Parent $PSScriptRoot) -Parent
 Write-Verbose -Message "Root directory: $root"
 
 if ($Bootstrap.IsPresent) {
+    # Separate switch for installing DSC
+    if ($InstallDsc.IsPresent) {
+        Install-RequiredPsModule -ModuleName 'PSDSC' -Version '1.2.4' -TrustRepository
+
+        Install-DscExe
+    }
+    
     if ($OnlyPsModules.IsPresent) {
-        # Separate switch for installing DSC
-        if ($InstallDsc.IsPresent) {
-            Install-RequiredPsModule -ModuleName 'PSDSC' -Version '1.2.4' -TrustRepository
-
-            Install-DscExe
-        }
-
         # Install Pester
         Install-RequiredPsModule -ModuleName 'Pester' -Version '5.7.1' -TrustRepository
 
@@ -153,7 +153,8 @@ if ($Publish.IsPresent) {
 
         Remove-Item -Path $archive.FullName -Force -ErrorAction Ignore
         Write-Verbose -Message "Assets uploaded successfully."
-    } else {
+    }
+    else {
         Write-Warning "Release for version $($latestVersion.Version) already exists. Make sure to update the version in the changelog before publishing."
     }
 }
