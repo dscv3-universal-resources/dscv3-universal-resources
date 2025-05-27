@@ -12,6 +12,10 @@ The purpose of this project is to showcase different DSC v3 resources and their 
 
 The repository contains DSC v3 resources with different implementations, which can be used to manage configuration settings across different environments. Each resource follows the DSC v3 schemantics and can be integrated with the engine. You will find the resources under the `resources` folder.
 
+## Privacy
+
+The applications developed in this repository doesn't transfer any personal information. For more information, check out the [privacy documentation](PRIVACY.md).
+
 ## Documentation
 
 For more information on documentation, check out the official documentation on the [website](https://dscv3-universal-resources.dev). The source is located in the docs [repository](https://github.com/dscv3-universal-resources/dscv3-universal-resources-docs).
