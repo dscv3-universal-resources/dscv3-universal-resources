@@ -2,7 +2,7 @@
 
 ## Overview
 
-<img align="left" src=assets/icon.png alt="DSC v3 universal resources logo"> This project provides Microsoft Desired State Configuration (DSC) v3 resources in various programming language. Microsoft DSC is a management framework that enables declarative configuration for software services and the environment in which these service run.
+<img align="left" src=assets/icon.png width="200" height="200" alt="DSC v3 universal resources logo"> This project provides Microsoft Desired State Configuration (DSC) v3 resources in various programming language. Microsoft DSC is a management framework that enables declarative configuration for software services and the environment in which these service run.
 
 Want to contribute to the project? We'd love to have you! Visit our [contributing.md](CONTRIBUTING.md) for a jump start.
 
