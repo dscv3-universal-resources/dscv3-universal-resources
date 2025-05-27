@@ -30,3 +30,19 @@ jobs:
         with:
           name: win32service
           path: ./resources/win32service/output
+
+  publish:
+    needs: buildandTest
+    runs-on: windows-latest
+    if: github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/')
+    defaults:
+      run:
+        shell: pwsh
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        
+      - name: Publish Win32service
+        run: |
+          ./resources/win32service/build.ps1 -Publish -GitHubToken ${{ secrets.GITHUB_TOKEN }} -Verbose

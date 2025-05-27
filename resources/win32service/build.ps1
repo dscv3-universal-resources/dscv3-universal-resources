@@ -4,287 +4,149 @@ param (
     $InstallDsc,
 
     [switch]
+    $Bootstrap,
+
+    [switch]
+    $OnlyPsModules,
+
+    [switch]
     $Test,
 
     [switch]
-    $SkipBuild,
+    $Build,
 
     [switch]
     $MakeAppx,
 
     [switch]
-    $Publish
+    $Publish,
+
+    [string]
+    $GitHubToken
 )
 
-function Find-MakeAppx() {
-    $makeappx = Get-Command makeappx -CommandType Application -ErrorAction Ignore
-    if ($null -eq $makeappx) {
-        # try to find
-        if (!$UseX64MakeAppx -and $architecture -eq 'aarch64-pc-windows-msvc') {
-            $arch = 'arm64'
+$errorActionPreference = 'Stop'
+
+$root = Split-Path (Split-Path -Parent $PSScriptRoot) -Parent
+
+# dot-source the common build helpers
+. (Join-Path $root 'sharedScripts' 'buildHelpers' 'common.ps1')
+
+Write-Verbose -Message "Root directory: $root"
+
+if ($Bootstrap.IsPresent) {
+    if ($OnlyPsModules.IsPresent) {
+        # Separate switch for installing DSC
+        if ($InstallDsc.IsPresent) {
+            Install-RequiredPsModule -ModuleName 'PSDSC' -Version '1.2.4' -TrustRepository
+
+            Install-DscExe
         }
-        else {
-            $arch = 'x64'
-        }
 
-        $makeappx = Get-ChildItem -Recurse -Path (Join-Path ${env:ProgramFiles(x86)} 'Windows Kits\10\bin\*\' $arch) -Filter makeappx.exe -ErrorAction SilentlyContinue | Sort-Object FullName -Descending | Select-Object -First 1
-        if ($null -eq $makeappx) {
-            return $Null
-        }
-    }
+        # Install Pester
+        Install-RequiredPsModule -ModuleName 'Pester' -Version '5.7.1' -TrustRepository
 
-    $makeappx
-}
+        # Install ChangelogManagement
+        Install-RequiredPsModule -ModuleName 'ChangelogManagement' -Version '3.1.0' -TrustRepository
 
-function Install-WindowsSdk {
-    Write-Verbose -Message "Installing Windows SDK"
+        # Install GitHub module
+        Install-RequiredPsModule -ModuleName 'GitHub' -Version '0.28.1' -TrustRepository
 
-    Write-Verbose "Downloading..."
-    $exePath = "$env:temp\wdksetup.exe"
-    (New-Object Net.WebClient).DownloadFile('https://go.microsoft.com/fwlink/?linkid=2317808', $exePath)
-
-    Write-Verbose "Installing..."
-    cmd /c start /wait $exePath /features + /quiet
-
-    Remove-Item $exePath
-    Write-Verbose "Installed"
-}
-
-function Get-GetTextAsset {
-    [CmdletBinding()]
-    param (
-        [Parameter()]
-        [string]
-        $Repository = "mlocati/gettext-iconv-windows",
-
-        [Parameter()]
-        [string]
-        $ToolDir = 'tools'
-    )
-
-    $releaseApiUrl = "https://api.github.com/repos/$Repository/releases/latest"
-
-    if (-not (Test-Path -Path $ToolDir)) {
-        New-Item -Path $ToolDir -ItemType Directory -Force | Out-Null
-    }
-
-    try {
-        Write-Verbose "Fetching release data from $releaseApiUrl"
-        $releases = Invoke-RestMethod -Uri $releaseApiUrl
-
-        if ($releases.assets) {
-            # Filter assets based on filename pattern
-            $architecture = [System.Environment]::Is64BitOperatingSystem ? '64' : '86'
-            $targetAsset = $releases.assets | Where-Object { $_.name -like "*gettext*-iconv*-static-$architecture.zip" }
-
-            if ($targetAsset) {
-                Write-Verbose "Found matching asset: $($targetAsset.name)"
-                $filePath = Join-Path $ToolDir $targetAsset.name
-                Invoke-RestMethod -Uri $targetAsset.browser_download_url -OutFile $filePath -ErrorAction Stop
-
-                Expand-Archive -Path $filePath -DestinationPath $ToolDir -Force -ErrorAction Stop
-                Write-Verbose "Extracted to $ToolDir"
-            }
-        }
-    }
-    catch {
-        Write-Error "Failed to fetch release info: $_"
-    }
-}
-
-function Get-GitRepositoryInfo {
-    [CmdletBinding()]
-    param()
-    
-    $root = Split-Path -Path $PSScriptRoot -Parent
-    $gitFile = Join-Path $root '.git'
-
-    if (-not (Test-Path -Path $gitFile)) {
-        Write-Error "No .git directory found in the current path"
         return
     }
 
-    # Get repository information
-    $repoInfo = [PSCustomObject]@{
-        RemoteUrl = (git config --get remote.origin.url)
-        CurrentBranch = (git rev-parse --abbrev-ref HEAD)
-        LastCommitHash = (git rev-parse HEAD)
-        LastCommitShortHash = (git rev-parse --short HEAD)
-        LastCommitDate = (git log -1 --format=%cd)
-        LastCommitMessage = (git log -1 --pretty=%B)
-        RepositoryRoot = (git rev-parse --show-toplevel)
-        Owner = $null
-        RepositoryName = $null
-    }
-    
-    # Extract owner and repository name from remote URL
-    if ($repoInfo.RemoteUrl) {
-        if ($repoInfo.RemoteUrl -match "github\.com[:/](?<owner>[^/]+)/(?<repo>[^/\.]+)(\.git)?") {
-            $repoInfo.Owner = $matches.owner
-            $repoInfo.RepositoryName = $matches.repo -replace '\.git$', ''
-        }
-    }
-    
-    return $repoInfo
-}
+    $architecture = [System.Environment]::Is64BitOperatingSystem ? '64' : '32'
+    $assetName = "gettext0.25-iconv1.17-static-$architecture.zip"
 
-if ($InstallDsc) {
-    if (-not (Get-Command dsc.exe -Type Application -ErrorAction Ignore)) {
-        Write-Verbose -Message "Installing dsc using PowerShell Gallery"
-        Install-PSResource -Name PSDSC -Repository PSGallery -TrustRepository
+    # Install the gettext-iconv-windows tool for translation messages
+    Invoke-DownloadGitHubAsset -Repository 'mlocati/gettext-iconv-windows' `
+        -AssetName $assetName `
+        -ToolDir (Join-Path $root 'tools') `
+        -Extract `
+        -AddToPath "bin"
 
-        Install-DscExe 
+    # Install upx
+    $upxAssetName = "upx-5.0.1-win$architecture.zip"
+    Invoke-DownloadGitHubAsset -Repository 'upx/upx' `
+        -AssetName $upxAssetName `
+        -ToolDir (Join-Path $root 'tools') `
+        -Extract `
+        -AddToPath "upx-5.0.1-win$architecture"
+
+    # Install UV
+    Install-UvPackageManager
+
+    # Check if Git is installed
+    if ($IsWindows -and -not (Get-Command git -CommandType Application -ErrorAction Ignore)) {
+        Write-Verbose -Message "Installing Git"
+        winget install --id Git.Git -e --silent
     }
 }
 
-if (-not (Get-Command uv.exe -Type Application -ErrorAction Ignore)) {
-    Write-Verbose -Message "Installing uv"
-    Invoke-RestMethod https://astral.sh/uv/install.ps1 | Invoke-Expression
+if ($Build.IsPresent) {
+    $projectToBuild = Join-Path $root 'resources' 'win32service'
 
-    $env:Path = "$env:USERPROFILE\.local\bin;$env:Path"
+    Build-PythonProject -ProjectPath $projectToBuild
+
+    $resourceManifest = Join-Path $projectToBuild 'win32service.dsc.resource.json'
+    Copy-Item -Path $resourceManifest -Destination (Join-Path $projectToBuild 'output') -Force -ErrorAction Stop
 }
 
-if (-not (Get-Command upx.exe -Type Application -ErrorAction Ignore)) {
-    Write-Verbose -Message "Installing upx"
+if ($Test.IsPresent) {
+    $pathToTest = Join-Path $root 'resources' 'win32service' 'tests'
 
-    $architecture = [System.Environment]::Is64BitOperatingSystem ? 'win64' : 'win32'
-    $upxVersion = '5.0.0'
-    $fileName = "upx-$upxVersion-$architecture.zip"
-    $upxUrl = "https://github.com/upx/upx/releases/download/v$upxVersion/$fileName"
-
-    Invoke-WebRequest -Uri $upxUrl -OutFile $fileName -UseBasicParsing -ErrorAction Stop
-
-    $destinationPath = Join-Path $PSScriptRoot 'upx'
-    if (-not (Test-Path -Path $destinationPath)) {
-        New-Item -Path $destinationPath -ItemType Directory -Force -ErrorAction Stop
-    }
-    Expand-Archive -Path $fileName -DestinationPath $destinationPath -Force -ErrorAction Stop
-
-    $env:Path += [System.IO.Path]::PathSeparator + $destinationPath
-
-    Remove-Item -Path $fileName -Force -ErrorAction Ignore
-}
-
-if (-not $SkipBuild) {
-    Write-Verbose -Message "Building the project"
-    
-    $projectPath = Join-Path $PSScriptRoot 'src'
-    $outputDir = Join-Path $PSScriptRoot 'output'
-
-    $upxPath = Join-Path $PSScriptRoot 'upx'
-
-    $env:Path += [System.IO.Path]::PathSeparator + $outputDir
-
-    try {
-        Push-Location -Path $projectPath -ErrorAction Stop
-        
-        # Create virtual environment
-        & uv venv 
-
-        # Active it
-        & .\.venv\Scripts\activate.ps1
-
-        # Sync all the dependencies
-        & uv sync @arguments
-
-        # Translate all messages
-        Get-GetTextAsset 
-
-        # Add path variable
-        $toolsPath = Join-Path $PSScriptRoot 'src' 'tools' 'bin'
-        $env:Path += [System.IO.Path]::PathSeparator + $toolsPath
-
-        $poFiles = Get-ChildItem -Path $PSScriptRoot -Filter '*.po' -Recurse
-        foreach ($poFile in $poFiles) {
-            $moFile = [System.IO.Path]::ChangeExtension($poFile.FullName, '.mo')
-            & msgfmt.exe -o $moFile $poFile.FullName --verbose
-        }
-
-        # Add locales directory to the path
-        $localesPath = Join-Path $PSScriptRoot 'locales'
-        $localesSpec = "$localesPath;locales"
-
-        Write-Verbose -Message "Using locales spec: $localesSpec"
-
-        # Build the project
-        & pyinstaller.exe main.py -F --clean --distpath $outputDir --name win32service --icon NONE --upx-dir $upxPath --add-data $localesSpec
-
-        # Move the resource manifest
-        $resourceManifest = Join-Path $PSScriptRoot 'win32service.dsc.resource.json'
-        Copy-Item -Path $resourceManifest -Destination $outputDir -Force -ErrorAction Stop
-
-    }
-    finally {
-        deactivate
-        Pop-Location -ErrorAction Ignore
-    }
-}
-
-if ($Test) {
-    if (-not (Get-Module -ListAvailable -Name Pester)) {
-        Install-PSResource Pester -Repository PSGallery -TrustRepository -ErrorAction Ignore
-    }
-
-    Invoke-Pester -ErrorAction Stop -Output Detailed
+    Invoke-Pester -Path $pathToTest -Output Detailed -ErrorAction Stop
 }
 
 if ($Publish.IsPresent) {
-    if (-not (Get-Module ChangelogManagement -ListAvailable -ErrorAction Ignore)) {
-        Install-PSResource -Name ChangelogManagement -Repository PSGallery -TrustRepository -Scope CurrentUser
+    if (-not $GitHubToken) {
+        Write-Error "GitHub token is required for publishing releases."
+        return
     }
 
-    if (-not (Get-Module GitHub -ListAvailable -ErrorAction Ignore)) {
-        Install-PSResource -Name GitHub -Repository PSGallery -TrustRepository -Scope CurrentUser
-    }
+    Connect-GitHubAccount -Token $GitHubToken -ErrorAction Stop
 
-    $changelogPath = Join-Path $PSScriptRoot 'CHANGELOG.md'
+    $projectRoot = Join-Path $root 'resources' 'win32service'
+
+    $changelogPath = Join-Path $projectRoot 'CHANGELOG.md'
+
     if (-not (Test-Path -Path $changelogPath)) {
         Write-Error "Changelog file not found at $changelogPath"
         return
     }
 
-    if ($IsWindows -and -not (Get-Command git -ErrorAction SilentlyContinue)) {
-        Write-Verbose -Message "Installing Git"
-        winget install --id Git.Git -e --silent
-    }
+    $repoDetails = Get-GitRepositoryInfo
 
-    $repositoryDetails = Get-GitRepositoryInfo
-
-    if ($repositoryDetails.CurrentBranch -ne 'main') {
-        Write-Error "You must be on the main branch to publish a release."
+    if ($repoDetails.CurrentBranch -ne 'main') {
+        Write-Warning "You must be on the main branch to publish a release."
         return
     }
 
     $getReleaseData = Get-ChangelogData -Path $changelogPath -ErrorAction Stop
-
     $latestVersion = $getReleaseData.Released | Select-Object -First 1 -Property Version, RawData
 
-    $toBeReleased = Get-GitHubRelease -Repository $repositoryDetails.RepositoryName -Owner $repositoryDetails.Owner -Tag "v$($latestVersion.Version)"
+    $toBeReleased = Get-GitHubRelease -Repository $repoDetails.RepositoryName -Owner $repoDetails.Owner -Tag "v$($latestVersion.Version)"
 
     if (!$toBeReleased) {
         # No existing release found, create a new one
         Write-Verbose -Message "Creating new release for version $($latestVersion.Version)"
-        $release = New-GitHubRelease -Repository $repositoryDetails.RepositoryName `
-            -Owner $repositoryDetails.Owner `
+        $release = New-GitHubRelease -Repository $repoDetails.RepositoryName `
+            -Owner $repoDetails.Owner `
             -Tag "v$($latestVersion.Version)" `
             -Notes $latestVersion.RawData
 
         Write-Verbose -Message "Release created with ID: $($release.Id)"
 
-        $releaseAssets = Get-ChildItem -Path "$PSScriptRoot\output\*"
+        $releaseAssets = Get-ChildItem -Path (Join-Path $projectRoot 'output') -Include 'win32service.exe', 'win32service.dsc.resource.json' -File -Recurse 
         if ($null -eq $releaseAssets) {
-            Write-Error "No assets found in output directory."
+            Write-Error "No assets found in output directory. Please build the project first."
             return
         }
 
-        # Before compression, copy the manifest
-        $manifestPath = Join-Path $PSScriptRoot 'win32service.dsc.resource.json'
-        $destinationPath = Join-Path $PSScriptRoot 'output'
+        $archive = Compress-Archive -Path $releaseAssets.FullName `
+            -DestinationPath "$projectRoot\output\win32service-v$($latestVersion.Version).zip" `
+            -Force -PassThru
 
-        Copy-Item -Path $manifestPath -Destination $destinationPath -Force -ErrorAction Stop
-
-        $archive = Compress-Archive -Path "$($releaseAssets[0].DirectoryName)\*" -DestinationPath "$PSScriptRoot\output\win32service-v$($latestVersion.Version).zip" -Force -PassThru
- 
         $release | Add-GitHubReleaseAsset -Path $archive `
             -Name "win32service-v$($latestVersion.Version).zip" `
             -ContentType "application/zip" `
@@ -297,14 +159,14 @@ if ($Publish.IsPresent) {
     }
 }
 
-if ($MakeAppx.IsPresent) {
-    $appxPath = Find-MakeAppx
-    if ($null -eq $appxPath) {
-        Write-Verbose -Message "Installing Windows SDK"
-        Install-WindowsSdk
+# if ($MakeAppx.IsPresent) {
+#     $appxPath = Find-MakeAppx
+#     if ($null -eq $appxPath) {
+#         Write-Verbose -Message "Installing Windows SDK"
+#         Install-WindowsSdk
 
-        $appxPath = Find-MakeAppx   
-    }
+#         $appxPath = Find-MakeAppx   
+#     }
 
-    Write-Verbose -Message "Using $appxPath"
-}
+#     Write-Verbose -Message "Using $appxPath"
+# }

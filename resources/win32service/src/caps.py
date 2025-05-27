@@ -53,7 +53,6 @@ def get_service(inputs):
                 "dependencies": config[6],
             }
         except win32service.error:
-            # Service not found
             json_string = {"name": service_name, "_exist": False}
 
         return json.dumps(json_string)
