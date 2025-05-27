@@ -34,26 +34,25 @@ $root = Split-Path (Split-Path -Parent $PSScriptRoot) -Parent
 
 Write-Verbose -Message "Root directory: $root"
 
-if ($Bootstrap.IsPresent) {
-    # Separate switch for installing DSC
-    if ($InstallDsc.IsPresent) {
+if ($OnlyPsModules.IsPresent) {
+    # Install Pester
+    Install-RequiredPsModule -ModuleName 'Pester' -Version '5.7.1' -TrustRepository
+
+    # Install ChangelogManagement
+    Install-RequiredPsModule -ModuleName 'ChangelogManagement' -Version '3.1.0' -TrustRepository
+
+    # Install GitHub module
+    Install-RequiredPsModule -ModuleName 'GitHub' -Version '0.28.1' -TrustRepository
+}
+
+if ($InstallDsc.IsPresent) {
         Install-RequiredPsModule -ModuleName 'PSDSC' -Version '1.2.4' -TrustRepository
 
         Install-DscExe
     }
 
-    if ($OnlyPsModules.IsPresent) {
-        # Install Pester
-        Install-RequiredPsModule -ModuleName 'Pester' -Version '5.7.1' -TrustRepository
 
-        # Install ChangelogManagement
-        Install-RequiredPsModule -ModuleName 'ChangelogManagement' -Version '3.1.0' -TrustRepository
-
-        # Install GitHub module
-        Install-RequiredPsModule -ModuleName 'GitHub' -Version '0.28.1' -TrustRepository
-        return
-    }
-
+if ($Bootstrap.IsPresent) {
     $architecture = [System.Environment]::Is64BitOperatingSystem ? '64' : '32'
     $assetName = "gettext0.25-iconv1.17-static-$architecture.zip"
 

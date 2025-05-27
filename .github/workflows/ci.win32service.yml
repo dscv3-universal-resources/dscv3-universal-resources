@@ -47,4 +47,4 @@ jobs:
         
       - name: Publish Win32service
         run: |
-          ./resources/win32service/build.ps1 -Bootstrap -OnlyPsModules -Publish -GitHubToken ${{ secrets.GITHUB_TOKEN }} -Verbose
+          ./resources/win32service/build.ps1 -OnlyPsModules -Publish -GitHubToken ${{ secrets.GITHUB_TOKEN }} -Verbose
