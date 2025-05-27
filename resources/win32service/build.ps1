@@ -51,7 +51,6 @@ if ($Bootstrap.IsPresent) {
 
         # Install GitHub module
         Install-RequiredPsModule -ModuleName 'GitHub' -Version '0.28.1' -TrustRepository
-
         return
     }
 
