@@ -23,7 +23,7 @@ jobs:
 
       - name: Build Win32service
         run: |
-          ./resources/win32service/build.ps1 -Test -InstallDsc -Verbose
+          ./resources/win32service/build.ps1 -Build -Test -InstallDsc -Verbose
 
       - name: Upload application
         uses: actions/upload-artifact@v4
