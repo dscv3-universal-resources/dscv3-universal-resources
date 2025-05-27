@@ -14,4 +14,4 @@ The repository contains DSC v3 resources with different implementations, which c
 
 ## Usage
 
-TODO: Write explanation about how to invoke the resources
+For more information on usage, check out the official documentation at: <https://dscv3-universal-resources.dev>.
