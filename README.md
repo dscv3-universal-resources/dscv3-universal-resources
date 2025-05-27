@@ -10,7 +10,7 @@ The purpose of this project is to showcase different DSC v3 resources and their 
 
 ## Structure
 
-The repository contains DSC v3 resources with different implementations, which can be used to manage configuration settings across different environments. Each resource follows the DSC v3 schemantics and can be integrated with the engine.
+The repository contains DSC v3 resources with different implementations, which can be used to manage configuration settings across different environments. Each resource follows the DSC v3 schemantics and can be integrated with the engine. You will find the resources under the `resources` folder.
 
 ## Usage
 
