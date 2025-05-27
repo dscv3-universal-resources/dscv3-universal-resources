@@ -172,7 +172,7 @@ function Install-UvPackageManager() {
         Invoke-RestMethod https://astral.sh/uv/install.ps1 | Invoke-Expression
     }
 
-    $env:Path = (Join-Path $env:USERPROFILE '.local' 'bin' + [System.IO.Path]::PathSeparator + $env:Path)
+    $env:Path = "$env:USERPROFILE\.local\bin;$env:Path"
 }
 
 function Build-PythonProject {
