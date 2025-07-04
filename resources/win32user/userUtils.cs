@@ -85,7 +85,7 @@ internal static class userUtils
         catch (Exception ex)
         {
             Logger.WriteError($"Failed to create user '{userSchema.userName}': {ex.Message}");
-            Environment.Exit(4);
+            Environment.Exit(5);
         }
     }
 
@@ -129,7 +129,7 @@ internal static class userUtils
         catch (Exception ex)
         {
             Logger.WriteError($"Failed to update user '{userSchema.userName}': {ex.Message}");
-            Environment.Exit(4);
+            Environment.Exit(5);
         }
     }
 
@@ -148,7 +148,7 @@ internal static class userUtils
         catch (Exception ex)
         {
             Logger.WriteError($"Failed to delete user '{userName}': {ex.Message}");
-            Environment.Exit(4);
+            Environment.Exit(6);
         }
     }
 
@@ -163,5 +163,43 @@ internal static class userUtils
         {
             return false;
         }
+    }
+
+    public static List<userSchema> GetAllUsers()
+    {
+        var users = new List<userSchema>();
+
+        try
+        {
+            using var context = new PrincipalContext(ContextType.Machine);
+            using var searcher = new PrincipalSearcher(new UserPrincipal(context));
+
+            foreach (var result in searcher.FindAll())
+            {
+                if (result is UserPrincipal user)
+                {
+                    users.Add(new userSchema
+                    {
+                        userName = user.SamAccountName,
+                        exist = true,
+                        fullName = user.DisplayName,
+                        description = user.Description,
+                        disabled = !user.Enabled,
+                        passwordNeverExpires = user.PasswordNeverExpires,
+                        passwordChangeNotAllowed = user.UserCannotChangePassword,
+                        passwordChangeRequired = IsPasswordChangeRequired(user)
+                    });
+
+                    user.Dispose();
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            Logger.WriteError($"Failed to retrieve all users: {ex.Message}");
+            Environment.Exit(7);
+        }
+
+        return users;
     }
 }

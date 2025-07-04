@@ -4,13 +4,16 @@ using OpenDsc.Resource;
 
 namespace DSCUniversalResources.Windows.User;
 
-public sealed class userResource : AotDscResource<userSchema>, IGettable<userSchema>, ISettable<userSchema>, IDeletable<userSchema>
+public sealed class userResource : AotDscResource<userSchema>, IGettable<userSchema>, ISettable<userSchema>, IDeletable<userSchema>, IExportable<userSchema>
 {
     public userResource(JsonSerializerContext context) : base("DSCUniversalResources.Windows/User", context)
     {
         Description = "Manage users in computer management.";
         Tags = ["Windows"];
-        ExitCodes.Add(10, new() { Exception = typeof(FileNotFoundException), Description = "User profile or required system file not found" });
+        ExitCodes.Add(4, new() { Exception = typeof(FileNotFoundException), Description = "Failed to get user information" });
+        ExitCodes.Add(5, new() { Exception = typeof(InvalidOperationException), Description = "Failed to create or update user" });
+        ExitCodes.Add(6, new() { Exception = typeof(InvalidOperationException), Description = "Failed to delete user" });
+        ExitCodes.Add(7, new() { Exception = typeof(InvalidOperationException), Description = "Failed to export users" });
     }
 
     public userSchema Get(userSchema instance)
@@ -57,5 +60,10 @@ public sealed class userResource : AotDscResource<userSchema>, IGettable<userSch
         {
             throw new InvalidOperationException($"Failed to delete user '{instance.userName}': {ex.Message}", ex);
         }
+    }
+
+    public IEnumerable<userSchema> Export()
+    {
+        return userUtils.GetAllUsers();
     }
 }
