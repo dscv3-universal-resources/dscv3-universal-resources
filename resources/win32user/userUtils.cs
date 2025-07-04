@@ -1,4 +1,5 @@
 using System.DirectoryServices.AccountManagement;
+using OpenDsc.Resource;
 
 namespace DSCUniversalResources.Windows.User;
 
@@ -11,26 +12,19 @@ internal static class userUtils
             using var context = new PrincipalContext(ContextType.Machine);
             using var user = UserPrincipal.FindByIdentity(context, userName);
 
-            if (user == null)
-            {
-                return new userSchema()
+            return user == null
+                ? new userSchema { userName = userName, exist = false }
+                : new userSchema
                 {
-                    UserName = userName,
-                    Exist = false
+                    userName = userName,
+                    exist = true,
+                    fullName = user.DisplayName,
+                    description = user.Description,
+                    disabled = !user.Enabled,
+                    passwordNeverExpires = user.PasswordNeverExpires,
+                    passwordChangeNotAllowed = user.UserCannotChangePassword,
+                    passwordChangeRequired = IsPasswordChangeRequired(user)
                 };
-            }
-
-            return new userSchema()
-            {
-                UserName = userName,
-                Exist = true,
-                FullName = user.DisplayName,
-                Description = user.Description,
-                Disabled = !user.Enabled,
-                PasswordNeverExpires = user.PasswordNeverExpires,
-                PasswordChangeNotAllowed = user.UserCannotChangePassword,
-                PasswordChangeRequired = IsPasswordChangeRequired(user)
-            };
         }
         catch (Exception ex)
         {
@@ -59,38 +53,39 @@ internal static class userUtils
             using var context = new PrincipalContext(ContextType.Machine);
             using var user = new UserPrincipal(context);
 
-            user.SamAccountName = userSchema.UserName;
-            user.Name = userSchema.UserName;
+            user.SamAccountName = userSchema.userName;
+            user.Name = userSchema.userName;
 
-            if (!string.IsNullOrEmpty(userSchema.FullName))
-                user.DisplayName = userSchema.FullName;
+            if (!string.IsNullOrEmpty(userSchema.fullName))
+                user.DisplayName = userSchema.fullName;
 
-            if (!string.IsNullOrEmpty(userSchema.Description))
-                user.Description = userSchema.Description;
+            if (!string.IsNullOrEmpty(userSchema.description))
+                user.Description = userSchema.description;
 
-            if (!string.IsNullOrEmpty(userSchema.Password))
-                user.SetPassword(userSchema.Password);
+            if (!string.IsNullOrEmpty(userSchema.password))
+                user.SetPassword(userSchema.password);
 
-            if (userSchema.Disabled.HasValue)
-                user.Enabled = !userSchema.Disabled.Value;
+            if (userSchema.disabled.HasValue)
+                user.Enabled = !userSchema.disabled.Value;
 
-            if (userSchema.PasswordNeverExpires.HasValue)
-                user.PasswordNeverExpires = userSchema.PasswordNeverExpires.Value;
+            if (userSchema.passwordNeverExpires.HasValue)
+                user.PasswordNeverExpires = userSchema.passwordNeverExpires.Value;
 
-            if (userSchema.PasswordChangeNotAllowed.HasValue)
-                user.UserCannotChangePassword = userSchema.PasswordChangeNotAllowed.Value;
+            if (userSchema.passwordChangeNotAllowed.HasValue)
+                user.UserCannotChangePassword = userSchema.passwordChangeNotAllowed.Value;
 
             user.Save();
 
             // Handle password change required after creation
-            if (userSchema.PasswordChangeRequired == true)
+            if (userSchema.passwordChangeRequired == true)
             {
                 user.ExpirePasswordNow();
             }
         }
         catch (Exception ex)
         {
-            throw new InvalidOperationException($"Failed to create user '{userSchema.UserName}': {ex.Message}", ex);
+            Logger.WriteError($"Failed to create user '{userSchema.userName}': {ex.Message}");
+            Environment.Exit(4);
         }
     }
 
@@ -99,41 +94,42 @@ internal static class userUtils
         try
         {
             using var context = new PrincipalContext(ContextType.Machine);
-            using var user = UserPrincipal.FindByIdentity(context, userSchema.UserName);
+            using var user = UserPrincipal.FindByIdentity(context, userSchema.userName);
 
             if (user == null)
-                throw new InvalidOperationException($"User '{userSchema.UserName}' not found");
+                throw new InvalidOperationException($"User '{userSchema.userName}' not found");
 
             // Update properties only if they're specified
-            if (!string.IsNullOrEmpty(userSchema.FullName))
-                user.DisplayName = userSchema.FullName;
+            if (!string.IsNullOrEmpty(userSchema.fullName))
+                user.DisplayName = userSchema.fullName;
 
-            if (!string.IsNullOrEmpty(userSchema.Description))
-                user.Description = userSchema.Description;
+            if (!string.IsNullOrEmpty(userSchema.description))
+                user.Description = userSchema.description;
 
-            if (!string.IsNullOrEmpty(userSchema.Password))
-                user.SetPassword(userSchema.Password);
+            if (!string.IsNullOrEmpty(userSchema.password))
+                user.SetPassword(userSchema.password);
 
-            if (userSchema.Disabled.HasValue)
-                user.Enabled = !userSchema.Disabled.Value;
+            if (userSchema.disabled.HasValue)
+                user.Enabled = !userSchema.disabled.Value;
 
-            if (userSchema.PasswordNeverExpires.HasValue)
-                user.PasswordNeverExpires = userSchema.PasswordNeverExpires.Value;
+            if (userSchema.passwordNeverExpires.HasValue)
+                user.PasswordNeverExpires = userSchema.passwordNeverExpires.Value;
 
-            if (userSchema.PasswordChangeNotAllowed.HasValue)
-                user.UserCannotChangePassword = userSchema.PasswordChangeNotAllowed.Value;
+            if (userSchema.passwordChangeNotAllowed.HasValue)
+                user.UserCannotChangePassword = userSchema.passwordChangeNotAllowed.Value;
 
             user.Save();
 
             // Handle password change required
-            if (userSchema.PasswordChangeRequired == true)
+            if (userSchema.passwordChangeRequired == true)
             {
                 user.ExpirePasswordNow();
             }
         }
         catch (Exception ex)
         {
-            throw new InvalidOperationException($"Failed to update user '{userSchema.UserName}': {ex.Message}", ex);
+            Logger.WriteError($"Failed to update user '{userSchema.userName}': {ex.Message}");
+            Environment.Exit(4);
         }
     }
 
@@ -151,7 +147,8 @@ internal static class userUtils
         }
         catch (Exception ex)
         {
-            throw new InvalidOperationException($"Failed to delete user '{userName}': {ex.Message}", ex);
+            Logger.WriteError($"Failed to delete user '{userName}': {ex.Message}");
+            Environment.Exit(4);
         }
     }
 

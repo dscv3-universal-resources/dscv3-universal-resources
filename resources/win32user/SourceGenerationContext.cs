@@ -1,4 +1,5 @@
 using System.Text.Json.Serialization;
+
 using OpenDsc.Resource;
 using OpenDsc.Resource.CommandLine;
 
