@@ -54,7 +54,7 @@ if ($InstallDsc.IsPresent) {
 
 if ($Bootstrap.IsPresent) {
     $architecture = [System.Environment]::Is64BitOperatingSystem ? '64' : '32'
-    $assetName = "gettext0.25-iconv1.17-static-$architecture.zip"
+    $assetName = "gettext0.25.1-iconv1.17-static-$architecture.zip"
 
     # Install the gettext-iconv-windows tool for translation messages
     Invoke-DownloadGitHubAsset -Repository 'mlocati/gettext-iconv-windows' `
