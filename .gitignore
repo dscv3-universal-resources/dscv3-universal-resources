@@ -50,7 +50,6 @@ bld/
 
 # Visual Studio cache files
 .vs/
-*.user
 *.suo
 *.cache
 *.ilk

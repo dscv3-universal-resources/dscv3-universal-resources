@@ -88,6 +88,15 @@ if ($Build.IsPresent) {
 
     $resourceManifest = Join-Path $projectToBuild 'win32service.dsc.resource.json'
     Copy-Item -Path $resourceManifest -Destination (Join-Path $projectToBuild 'output') -Force -ErrorAction Stop
+
+    # Copy assets
+    $assets = Join-Path $projectToBuild 'msix' 'assets'
+    Copy-Item -Path $assets -Destination (Join-Path $projectToBuild 'output' 'assets') -Recurse -Force -ErrorAction Stop    
+
+    # Manifest 
+    $appxManifest = Join-Path $projectToBuild 'msix' 'AppxManifest.xml'
+    Copy-Item -Path $appxManifest -Destination (Join-Path $projectToBuild 'output' 'AppxManifest.xml') -Force -ErrorAction Stop
+    
 }
 
 if ($Test.IsPresent) {

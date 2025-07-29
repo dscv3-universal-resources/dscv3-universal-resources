@@ -1,0 +1,5 @@
+<DotNetCliTool Version="1">
+    <Commands>
+        <Command Name="windows-user" EntryPoint="windows-user.dll" Runner="dotnet"/>
+    </Commands>
+</DotNetCliTool>

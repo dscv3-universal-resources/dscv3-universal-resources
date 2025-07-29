@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Package
+    xmlns="http://schemas.microsoft.com/appx/manifest/foundation/windows10"
+    xmlns:uap="http://schemas.microsoft.com/appx/manifest/uap/windows10"
+    xmlns:uap3="http://schemas.microsoft.com/appx/manifest/uap/windows10/3"
+    xmlns:desktop="http://schemas.microsoft.com/appx/manifest/desktop/windows10"
+    xmlns:rescap="http://schemas.microsoft.com/appx/manifest/foundation/windows10/restrictedcapabilities">
+
+    <Identity
+        Name="DSCWindowsService"
+        Publisher="CN=6017534E-33DE-49C4-8D33-E62BECF5069F"
+        Version="1.0.0.0" 
+        ProcessorArchitecture="x64" />
+
+    <Properties>
+        <DisplayName>DSC Windows Service</DisplayName>
+        <PublisherDisplayName>Gijs Reijn</PublisherDisplayName>
+        <Logo>Assets\Win32ServiceLogo.png</Logo>
+    </Properties>
+
+    <Dependencies>
+        <TargetDeviceFamily Name="Windows.Desktop" MinVersion="10.0.17763.0"
+            MaxVersionTested="10.0.18362.0" />
+    </Dependencies>
+
+    <Resources>
+        <Resource Language="en-us" />
+    </Resources>
+
+    <Applications>
+        <Application Id="Win32ServiceApp" Executable="win32service.exe"
+            EntryPoint="Windows.FullTrustApplication">
+            <Extensions>
+                <uap3:Extension Category="windows.appExecutionAlias"
+                    EntryPoint="Windows.FullTrustApplication" Executable="win32service.exe">
+                    <uap3:AppExecutionAlias>
+                        <desktop:ExecutionAlias Alias="win32service.exe" />
+                    </uap3:AppExecutionAlias>
+                </uap3:Extension>
+            </Extensions>
+            <uap:VisualElements
+                DisplayName="DSC Windows Service"
+                Description="A Windows Service DSC resource for Microsoft Desired State Configuration (DSC)."
+                BackgroundColor="transparent"
+                Square150x150Logo="Assets\Win32Service150x150Logo.png"
+                Square44x44Logo="Assets\Win32Service44x44Logo.png" />
+        </Application>
+    </Applications>
+
+    <Capabilities>
+        <rescap:Capability Name="runFullTrust" />
+    </Capabilities>
+</Package>
