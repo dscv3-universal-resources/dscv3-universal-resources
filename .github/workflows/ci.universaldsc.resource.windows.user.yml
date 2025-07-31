@@ -32,4 +32,4 @@ jobs:
     - name: Run integration tests
       shell: pwsh
       run: |
-        ./build.ps1 -ProjectName "UniversalDsc.Resource.Windows.User" -Test -Verbose
+        ./build.ps1 -ProjectName "UniversalDsc.Resource.Windows.User" -Publish -Test -Verbose
