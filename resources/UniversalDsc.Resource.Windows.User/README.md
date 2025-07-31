@@ -1,6 +1,6 @@
 # UniversalDsc.Resource.Windows.User
 
-A Universal DSC Resource for managing Windows local user accounts. This resource provides management of Windows local users through Microsoft Desired State Configuration (DSC) v3.
+A Universal DSC Resource for managing Windows local user accounts. This resource provides management of Windows local users through Microsoft Desired State Configuration (DSC) v3 or running the executable standalone.
 
 ## Features
 
@@ -26,10 +26,26 @@ dotnet tool install UniversalDsc.Resource.Windows.User --global
 dotnet tool install UniversalDsc.Resource.Windows.User --tool-path mytools
 ```
 
+## Microsoft DSC v3 integration
+
+The `windows-user.exe` can be executed through Microsoft DSC v3. Using `dotnet.exe tool install` doesn't automatically copy the `windows-user.dsc.resource.json` to the root directory. If you manually copy the file in the root, the DSC engine can pick it up.
+
+The following code snippet can be run after the tool is installed:
+
+```powershell
+$rootPath = Join-Path $env:USERPROFILE -ChildPath '.dotnet' -AdditionalChildPath 'tools'
+$storePath = Join-Path $rootPath -ChildPath '.store' -AdditionalChildPath 'universaldsc.resource.windows.user'
+
+$manifestFile = Get-ChildItem -Path $storePath -Recurse -Filter *.dsc.resource.json | Select-Object -First 1
+Copy-Item -Path $manifestFile -Destination $rootPath
+```
+
 ### Configuration document example
 
+The following example shows you how you can run a configuration document through `dsc.exe`:
+
 ```yaml
-# Configuration document example
+# user.dsc.config.yaml
 $schema: https://aka.ms/dsc/schemas/v3/bundled/config/document.json
 resources:
   - name: TestUser
@@ -41,6 +57,12 @@ resources:
       disabled: false
       passwordNeverExpires: false
       passwordChangeRequired: true
+```
+
+Run the following command to execute `dsc.exe` if you have it installed:
+
+```bash
+dsc config get --file user.dsc.config.yaml
 ```
 
 ### Properties
@@ -56,3 +78,5 @@ resources:
 - **exist** (optional): Whether the user should exist (true/false, defaults to true)
 
 ## Additional Information
+
+- [Install Microsoft DSC v3](https://learn.microsoft.com/en-us/powershell/dsc/overview?view=dsc-3.0#install-dsc-on-windows-with-winget)

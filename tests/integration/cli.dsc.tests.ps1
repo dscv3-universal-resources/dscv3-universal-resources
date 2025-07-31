@@ -5,7 +5,7 @@ param (
 )
 
 $script:root = Split-Path (Split-Path -Path $PSScriptRoot -Parent)
-$script:outputDirectory = Join-Path $root 'output'
+$script:outputDirectory = Join-Path $root 'output' 'nupkgs' # Test on nupkgs output
 
 Write-Verbose "Running tests for project '$ProjectName' in directory '$root'" -Verbose
 
