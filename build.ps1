@@ -219,4 +219,8 @@ if ($Pack.IsPresent)
         Write-Error "Failed to pack project '$ProjectName'. Exit code: $LASTEXITCODE"
         return
     }
+
+    $gitHubPath = Join-Path $outputDirectory 'GitHub'
+    $exe = Get-ChildItem -Path $gitHubPath -Filter *.exe
+    Compress-Archive -Path (Get-ChildItem $gitHubPath | Select-Object -ExpandProperty FullName) -DestinationPath (Join-Path $gitHubPath "$($exe.BaseName)-$($changeLog.LastVersion)-x64.zip") -Force
 }
