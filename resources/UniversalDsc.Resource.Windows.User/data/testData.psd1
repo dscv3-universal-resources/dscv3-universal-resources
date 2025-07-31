@@ -18,7 +18,6 @@
                     password = 'P@ssw0rd!'
                     description = 'Test User Account'
                     passwordNeverExpires = $true
-                    accountDisabled = $false
                     passwordChangeRequired = $false
                     passwordChangeNotAllowed = $false
                 }
