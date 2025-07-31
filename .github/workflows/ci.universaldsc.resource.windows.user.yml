@@ -1,0 +1,35 @@
+name: UniversalDsc Windows User Resource CI
+
+on:
+  pull_request:
+    paths:
+      - 'resources/UniversalDsc.Resource.Windows.User/**'
+      - 'tests/integration/cli.dsc.tests.ps1'
+      - 'build.ps1'
+      - '.github/workflows/ci.universaldsc.resource.windows.user.yml'
+  push:
+    branches:
+      - main
+    paths:
+      - 'resources/UniversalDsc.Resource.Windows.User/**'
+      - 'tests/integration/cli.dsc.tests.ps1'
+      - 'build.ps1'
+      - '.github/workflows/ci.universaldsc.resource.windows.user.yml'
+
+jobs:
+  build-and-test:
+    runs-on: windows-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: '9.x'
+
+    - name: Run integration tests
+      shell: pwsh
+      run: |
+        ./build.ps1 -ProjectName "UniversalDsc.Resource.Windows.User" -Test -Verbose
