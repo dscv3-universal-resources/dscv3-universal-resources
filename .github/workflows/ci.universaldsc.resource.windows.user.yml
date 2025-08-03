@@ -31,10 +31,10 @@ jobs:
 
     - name: Setup .NET x86
       uses: actions/setup-dotnet@v4
-      env:
-        PROCESSOR_ARCHITECTURE: x86
       with:
         dotnet-version: 9.x
+        args: |
+          --architecture x86
 
     - name: Run integration tests
       shell: pwsh
