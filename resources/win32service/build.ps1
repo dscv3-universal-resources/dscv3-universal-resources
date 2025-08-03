@@ -168,15 +168,3 @@ if ($Publish.IsPresent) {
         Write-Warning "Release for version $($latestVersion.Version) already exists. Make sure to update the version in the changelog before publishing."
     }
 }
-
-# if ($MakeAppx.IsPresent) {
-#     $appxPath = Find-MakeAppx
-#     if ($null -eq $appxPath) {
-#         Write-Verbose -Message "Installing Windows SDK"
-#         Install-WindowsSdk
-
-#         $appxPath = Find-MakeAppx   
-#     }
-
-#     Write-Verbose -Message "Using $appxPath"
-# }

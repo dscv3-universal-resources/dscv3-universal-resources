@@ -17,10 +17,17 @@ param (
     $Test,
 
     [switch]
-    $Pack
+    $Pack,
+
+    [switch]
+    $Release
 )
 
+$errorActionPreference = 'Stop'
 $outputDirectory = Join-Path $PSScriptRoot 'output'
+
+# dot-source the common build helpers
+. (Join-Path $PSScriptRoot 'sharedScripts' 'buildHelpers' 'common.ps1')
 
 function getNetPath
 {
@@ -53,7 +60,8 @@ function getProjectPath ($ProjectName)
     return $projectPath.FullName
 }
 
-function saveChangeLogModule {
+function saveChangeLogModule
+{
     if (-not (Get-Module -Name 'ChangeLogManagement' -ListAvailable -ErrorAction Ignore))
     {
         $params = @{
@@ -191,9 +199,9 @@ if ($Pack.IsPresent)
         return
     }
 
-    $changeLog = Get-ChangelogData -Path $changeLogPath
+    $script:changeLog = Get-ChangelogData -Path $changeLogPath
 
-    if ($changeLog.LastVersion -eq $null)
+    if ($null -eq $changeLog.LastVersion)
     {
         Write-Error "No version found in CHANGELOG.md. Please ensure the file contains a valid version entry."
         return
@@ -201,14 +209,38 @@ if ($Pack.IsPresent)
 
     Write-Verbose "Packing project '$ProjectName' with version '$($changeLog.LastVersion)'" -Verbose
     $nugetPkgsPath = Join-Path $outputDirectory 'nupkgs'
+
+    $nuSpecFile = Join-Path (Split-Path $projectFile -Parent) "$($ProjectName).nuspec"
+    Write-Verbose "Using NuSpec file at '$nuSpecFile'" -Verbose
+
+    # Read the nuspec file
+    [xml]$nuspecContent = Get-Content -Path $nuSpecFile -Raw
+    
+    # Store the original version
+    $originalVersion = $nuspecContent.package.metadata.version
+    
+    try
+    {
+        # Update the version in the nuspec
+        $nuspecContent.package.metadata.version = $changeLog.LastVersion.ToString()
+        
+        # Save back to the original file
+        $nuspecContent.Save($nuSpecFile)
+        
+        Write-Verbose "Updated version in nuspec to '$($changeLog.LastVersion)'" -Verbose
+    }
+    catch
+    {
+        throw "Failed to update nuspec file: $_"
+    }
+
     $packParams = @(
         'pack',
         $projectFile,
         '--configuration', $Configuration,
         '--output', $nugetPkgsPath,
         '--no-build',
-        "/p:NuspecFile=$($projectFile -replace '\.csproj$', '.nuspec')",
-        "--version-suffix", $changeLog.LastVersion
+        "/p:NuspecFile=$nuSpecFile"
     )
 
     Write-Verbose "Packing project '$ProjectName' to '$nugetPkgsPath'" -Verbose
@@ -220,7 +252,62 @@ if ($Pack.IsPresent)
         return
     }
 
+    Write-Verbose "Packing completed successfully. NuGet packages are available in '$nugetPkgsPath'" -Verbose
+    # Restore the original version in the nuspec file
+    try
+    {
+        $nuspecContent.package.metadata.version = $originalVersion
+        $nuspecContent.Save($nuSpecFile)
+        Write-Verbose "Restored original version '$originalVersion' in nuspec file." -Verbose
+    }
+    catch
+    {
+        Write-Warning "Failed to restore original version in nuspec file: $_"
+    }
+
     $gitHubPath = Join-Path $outputDirectory 'GitHub'
     $exe = Get-ChildItem -Path $gitHubPath -Filter *.exe
-    Compress-Archive -Path (Get-ChildItem $gitHubPath | Select-Object -ExpandProperty FullName) -DestinationPath (Join-Path $gitHubPath "$($exe.BaseName)-$($changeLog.LastVersion)-x64.zip") -Force
+
+    # create the zip
+    $compressParams = @{
+        Path            = (Get-ChildItem $gitHubPath | Select-Object -ExpandProperty FullName)
+        DestinationPath = (Join-Path $gitHubPath "$($exe.BaseName)-$($changeLog.LastVersion)-x64.zip")
+        Force           = $true
+        PassThru        = $true
+    }
+    $zip = Compress-Archive @compressParams
+}
+
+if ($Release.IsPresent)
+{
+    $repo = Get-GitRepositoryInfo
+    $tagName = [System.IO.Path]::Combine('resources', $ProjectName, $changeLog.LastVersion)
+    $releaseParams = @{
+        Owner      = $repo.Owner 
+        Repository = $repo.RepositoryName
+        Tag        = $tagName.Replace('\', '/')
+    }
+
+    Write-Verbose -Message ($releaseParams | ConvertTo-Json | Out-String) -Verbose
+    $currentRelease = Get-GitHubRelease @releaseParams -ErrorAction Ignore
+    if (-not $currentRelease)
+    {
+        Write-Verbose -Message "No existing release found for tag '$($releaseParams.Tag)'. Creating a new release." -Verbose
+        $releaseParams.Add('Notes', $changeLog.ReleaseNotes)
+        $releaseParams.Add('Latest', $false)
+        $currentRelease = New-GitHubRelease @releaseParams -ErrorAction Stop
+        Write-Verbose -Message "Release created successfully with tag '$($releaseParams.Tag)'" -Verbose
+
+        # Adding asset 
+        $currentRelease | Add-GitHubReleaseAsset -Path $zip.FullName `
+            -Name $zip.Name `
+            -ContentType 'application/zip' `
+            -ErrorAction Stop
+    }
+    else
+    {
+        Write-Verbose -Message "Release already exists for tag '$($releaseParams.Tag)'. Updating release notes." -Verbose
+        $currentRelease | Update-GitHubRelease -Notes $changeLog.ReleaseNotes -ErrorAction Stop
+    }
+    
 }

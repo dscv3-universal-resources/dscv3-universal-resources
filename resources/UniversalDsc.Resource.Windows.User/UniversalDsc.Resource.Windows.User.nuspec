@@ -1,19 +1,20 @@
 <?xml version="1.0"?>
 <package xmlns="http://schemas.microsoft.com/packaging/2010/07/nuspec.xsd">
-    <metadata>
-        <id>UniversalDsc.Resource.Windows.User</id>
-        <version>0.1.1</version>
-        <title></title>
-        <authors>Gijs Reijn</authors>
-        <license type="expression">MIT</license>
-        <licenseUrl>https://licenses.nuget.org/MIT</licenseUrl>
-        <icon>icon.png</icon>
-        <iconUrl>https://raw.githubusercontent.com/dscv3-universal-resources/dscv3-universal-resources/refs/heads/main/resources/UniversalDsc.Resource.Windows.User/icon_512x512.png</iconUrl>
-        <projectUrl>https://github.com/dscv3-universal-resources/dscv3-universal-resources</projectUrl>
-        <requireLicenseAcceptance>false</requireLicenseAcceptance>
-        <copyright>© 2025 Gijs Reijn. All rights reserved.</copyright>
-        <summary>A Universal DSC Resource for managing Windows local user accounts. Supports creating, updating, and deleting local users with various properties like full name, description, password settings, and account status.</summary>
-        <description>Universal DSC Resource for Windows Users provides management of Windows local user accounts through Microsoft Desired State Configuration (DSC) v3.
+  <metadata>
+    <id>UniversalDsc.Resource.Windows.User</id>
+    <version>0.1.0</version>
+    <title>
+    </title>
+    <authors>Gijs Reijn</authors>
+    <license type="expression">MIT</license>
+    <licenseUrl>https://licenses.nuget.org/MIT</licenseUrl>
+    <icon>icon.png</icon>
+    <iconUrl>https://raw.githubusercontent.com/dscv3-universal-resources/dscv3-universal-resources/refs/heads/main/resources/UniversalDsc.Resource.Windows.User/icon_512x512.png</iconUrl>
+    <projectUrl>https://github.com/dscv3-universal-resources/dscv3-universal-resources</projectUrl>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <copyright>© 2025 Gijs Reijn. All rights reserved.</copyright>
+    <summary>A Universal DSC Resource for managing Windows local user accounts. Supports creating, updating, and deleting local users with various properties like full name, description, password settings, and account status.</summary>
+    <description>Universal DSC Resource for Windows Users provides management of Windows local user accounts through Microsoft Desired State Configuration (DSC) v3.
 
 Features:
 - Create, update, and delete local Windows user accounts
@@ -28,22 +29,20 @@ Usage:
 windows-user.exe config get --input '{"username":"testuser"}'
 windows-user.exe config set --input '{"username":"testuser","fullName":"Test User","description":"Test account"}'
 windows-user.exe config test --input '{"username":"testuser"}'</description>
-        <releaseNotes>Added icon to the package</releaseNotes>
-        <readme>README.md</readme>
-        <language>en-US</language>
-        <tags>DSC Windows Users Management</tags>
-        <repository type="git" url="https://github.com/dscv3-universal-resources/dscv3-universal-resources.git" />
-        <packageTypes>
-            <packageType name="DotnetTool" />
-        </packageTypes>
-    </metadata>
-    <files>
-        <file src="README.md" target="README.md" />
-        <file src="icon.png" target="icon.png" />
-        <file src="..\..\LICENSE" target="LICENSE" />
-
-
-        <file src="..\..\output\nupkgs\**\*.*" target="tools\net9.0\any" />
-        <file src="DotnetToolSettings.xml" target="tools\net9.0\any" />
-    </files>
+    <releaseNotes>Added icon to the package</releaseNotes>
+    <readme>README.md</readme>
+    <language>en-US</language>
+    <tags>DSC Windows Users Management</tags>
+    <repository type="git" url="https://github.com/dscv3-universal-resources/dscv3-universal-resources.git" />
+    <packageTypes>
+      <packageType name="DotnetTool" />
+    </packageTypes>
+  </metadata>
+  <files>
+    <file src="README.md" target="README.md" />
+    <file src="icon.png" target="icon.png" />
+    <file src="..\..\LICENSE" target="LICENSE" />
+    <file src="..\..\output\nupkgs\**\*.*" target="tools\net9.0\any" />
+    <file src="DotnetToolSettings.xml" target="tools\net9.0\any" />
+  </files>
 </package>
