@@ -33,8 +33,7 @@ jobs:
       uses: actions/setup-dotnet@v4
       with:
         dotnet-version: 9.x
-        args: |
-          --architecture x86
+        architecture: x86
 
     - name: Run integration tests
       shell: pwsh
