@@ -31,21 +31,35 @@ $outputDirectory = Join-Path $PSScriptRoot 'output'
 
 function getNetPath
 {
-    $dotnet = (Get-Command dotnet -CommandType Application -ErrorAction Ignore | Select-Object -First 1).Source
-    if ($null -eq $dotnet)
+    $dotnetPaths = @()
+    
+    # Check x64 path
+    $dotnetPathX64 = Get-ChildItem -Path (Join-Path $env:ProgramFiles 'dotnet' 'sdk' '9.0.*') -ErrorAction Ignore | Sort-Object LastWriteTime -Descending | Select-Object -First 1
+    if ($dotnetPathX64)
     {
-        $dotnetPath = Get-ChildItem -Path (Join-Path $env:ProgramFiles 'dotnet' 'sdk' '9.0.*') | Sort-Object LastWriteTime -Descending | Select-Object -First 1
-        if (Test-Path -Path $dotnetPath)
+        $dotnetX64 = Join-Path $env:ProgramFiles 'dotnet' 'dotnet.exe'
+        if (Test-Path $dotnetX64)
         {
-            $dotnet = Join-Path $env:ProgramFiles 'dotnet' 'dotnet.exe'
+            $dotnetPaths += $dotnetX64
         }
-        else
-        {
-            return $false
-        } 
     }
 
-    return $dotnet
+    # Check x86 path
+    $dotnetPathX86 = Get-ChildItem -Path (Join-Path ${env:ProgramFiles(x86)} 'dotnet' 'sdk' '9.0.*') -ErrorAction Ignore | Sort-Object LastWriteTime -Descending | Select-Object -First 1
+    if ($dotnetPathX86)
+    {
+        $dotnetX86 = Join-Path ${env:ProgramFiles(x86)} 'dotnet' 'dotnet.exe'
+        if (Test-Path $dotnetX86)
+        {
+            $dotnetPaths += $dotnetX86
+        }
+    }
+
+    if ($dotnetPaths.Count -ne 2) {
+        return $false
+    }
+
+    return $dotnetPaths[0]
 }
 
 function getProjectPath ($ProjectName)
@@ -81,8 +95,8 @@ function saveChangeLogModule
 $dotnet = getNetPath
 if (-not $dotnet)
 {
-    Write-Error "Dotnet SDK not found. Please install .NET SDK 9.0 or later."
-    return
+    Write-Error "Dotnet SDK not found. Please install .NET SDK 9.0 or later for both 'x64' and 'x86'."
+    return 
 }
 
 $projectFile = getProjectPath -ProjectName $ProjectName
@@ -110,7 +124,8 @@ $build = @(
 # Set the output directories for packing and publishing
 $outputDirectories = @()
 $outputDirectories += Join-Path $outputDirectory 'nupkgs'
-$outputDirectories += Join-Path $outputDirectory 'GitHub'
+$outputDirectories += Join-Path $outputDirectory 'GitHub' 'win-x64'
+$outputDirectories += Join-Path $outputDirectory 'GitHub' 'win-x86'
 
 if ($Publish.IsPresent)
 {
@@ -136,14 +151,15 @@ if ($Publish.IsPresent)
         }
         else
         {
+            $runtime = Split-Path -Path $outputDir -Leaf
             Write-Verbose -Message "Publishing project '$ProjectName' to executable in '$outputDir'" -Verbose
             $publishParams += "/p:SelfContained=false"
             $publishParams += "/p:PublishSingleFile=true"
-            $publishParams += '--runtime', 'win-x64'
+            $publishParams += '--runtime', $runtime
         }
 
         $publishParams += '--output', $outputDir
-        Write-Verbose -Message "Publishing project '$ProjectName' to '$outputDir'" -Verbose
+        Write-Verbose ($publishParams | ConvertTo-Json | Out-String) -Verbose
         & $dotnet @publishParams
 
         if ($LASTEXITCODE -ne 0)
@@ -266,16 +282,26 @@ if ($Pack.IsPresent)
     }
 
     $gitHubPath = Join-Path $outputDirectory 'GitHub'
-    $exe = Get-ChildItem -Path $gitHubPath -Filter *.exe
+    $exe = Get-ChildItem -Path $gitHubPath -Filter *.exe -Recurse
 
-    # create the zip
-    $compressParams = @{
-        Path            = (Get-ChildItem $gitHubPath | Select-Object -ExpandProperty FullName)
-        DestinationPath = (Join-Path $gitHubPath "$($exe.BaseName)-$($changeLog.LastVersion)-x64.zip")
-        Force           = $true
-        PassThru        = $true
+    $zips = @()
+    foreach ($arch in $exe) {
+        $filesToZip = @(
+            $arch.FullName,
+            (Join-Path ($arch.DirectoryName) "$($arch.BaseName).dsc.resource.json")
+        )
+
+        $compressParams = @{
+            Path            = $filesToZip
+            DestinationPath = (Join-Path $gitHubPath "$($arch.BaseName)-$($changeLog.LastVersion)-$($arch.Directory.Name.TrimStart('win-')).zip")
+            Force           = $true
+            PassThru        = $true
+        }
+
+        # create the zip file
+        Write-Verbose "Creating zip file for '$($arch.Name)' at '$($compressParams.DestinationPath)'" -Verbose
+        $zips += Compress-Archive @compressParams
     }
-    $zip = Compress-Archive @compressParams
 }
 
 if ($Release.IsPresent)
@@ -298,16 +324,25 @@ if ($Release.IsPresent)
         $currentRelease = New-GitHubRelease @releaseParams -ErrorAction Stop
         Write-Verbose -Message "Release created successfully with tag '$($releaseParams.Tag)'" -Verbose
 
-        # Adding asset 
-        $currentRelease | Add-GitHubReleaseAsset -Path $zip.FullName `
-            -Name $zip.Name `
-            -ContentType 'application/zip' `
-            -ErrorAction Stop
+        # Adding asset
+        foreach ($zip in $zips) {
+            Write-Verbose -Message "Adding asset '$($zip.Name)' to release '$($currentRelease.Tag)'" -Verbose
+            if (-not (Test-Path -Path $zip.FullName))
+            {
+                Write-Error "Zip file '$($zip.FullName)' does not exist. Cannot add to release."
+                continue
+            } else 
+            {
+                $currentRelease | Add-GitHubReleaseAsset -Path $zip.FullName `
+                -Name $zip.Name `
+                -ContentType 'application/zip' `
+                -ErrorAction Stop
+            }
+        }
     }
     else
     {
         Write-Verbose -Message "Release already exists for tag '$($releaseParams.Tag)'. Updating release notes." -Verbose
         $currentRelease | Update-GitHubRelease -Notes $changeLog.ReleaseNotes -ErrorAction Stop
-    }
-    
+    }   
 }
