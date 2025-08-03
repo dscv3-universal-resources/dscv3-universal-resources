@@ -24,10 +24,17 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v4
 
-    - name: Setup .NET
+    - name: Setup .NET x64
       uses: actions/setup-dotnet@v4
       with:
         dotnet-version: '9.x'
+
+    - name: Setup .NET x86
+      uses: actions/setup-dotnet@v4
+      env:
+        PROCESSOR_ARCHITECTURE: x86
+      with:
+        dotnet-version: 9.x
 
     - name: Run integration tests
       shell: pwsh
