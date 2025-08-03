@@ -24,16 +24,24 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v4
 
-    - name: Setup .NET x64
-      uses: actions/setup-dotnet@v4
-      with:
-        dotnet-version: '9.x'
-
     - name: Setup .NET x86
+      uses: actions/setup-dotnet@v4
+      env:
+        PROCESSOR_ARCHITECTURE: x86
+        DOTNET_INSTALL_DIR: C:\Program Files (x86)\dotnet
+      with:
+        dotnet-version: 9.x
+
+    # Copy DOTNET_ROOT from the above step to DOTNET_ROOT(x86), the next step will overwrite DOTNET_ROOT to refer to the 64-bit installation
+    - name: Set DOTNET_ROOT(x86)
+      shell: pwsh
+      run: |
+        echo "DOTNET_ROOT(x86)=${env:DOTNET_ROOT}" | Out-File -FilePath $env:GITHUB_ENV -Append
+    
+    - name: Setup .NET
       uses: actions/setup-dotnet@v4
       with:
         dotnet-version: 9.x
-        architecture: x86
 
     - name: Run integration tests
       shell: pwsh
