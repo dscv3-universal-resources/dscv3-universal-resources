@@ -1,0 +1,49 @@
+name: UniversalDsc Windows Group Resource CI
+
+on:
+  pull_request:
+    paths:
+      - 'resources/UniversalDsc.Resource.Windows.Group/**'
+      - 'tests/integration/cli.dsc.tests.ps1'
+      - 'build.ps1'
+      - '.github/workflows/ci.universaldsc.resource.windows.group.yml'
+  push:
+    branches:
+      - main
+    paths:
+      - 'resources/UniversalDsc.Resource.Windows.Group/**'
+      - 'tests/integration/cli.dsc.tests.ps1'
+      - 'build.ps1'
+      - '.github/workflows/ci.universaldsc.resource.windows.group.yml'
+
+jobs:
+  build-and-test:
+    runs-on: windows-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup .NET x86
+      uses: actions/setup-dotnet@v4
+      env:
+        PROCESSOR_ARCHITECTURE: x86
+        DOTNET_INSTALL_DIR: C:\Program Files (x86)\dotnet
+      with:
+        dotnet-version: 9.x
+
+    # Copy DOTNET_ROOT from the above step to DOTNET_ROOT(x86), the next step will overwrite DOTNET_ROOT to refer to the 64-bit installation
+    - name: Set DOTNET_ROOT(x86)
+      shell: pwsh
+      run: |
+        echo "DOTNET_ROOT(x86)=${env:DOTNET_ROOT}" | Out-File -FilePath $env:GITHUB_ENV -Append
+    
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: 9.x
+
+    - name: Run integration tests
+      shell: pwsh
+      run: |
+        ./build.ps1 -ProjectName "UniversalDsc.Resource.Windows.Group" -Publish -Test -Verbose

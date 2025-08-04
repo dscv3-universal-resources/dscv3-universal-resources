@@ -8,13 +8,7 @@ A Universal DSC Resource for managing Windows local user accounts. This resource
 - Manage user properties: full name, description, password
 - Configure account settings: enabled/disabled state, password expiration, password change requirements
 - Full integration with DSC v3 framework
-- Support for Get, Set, and Test operations
-
-## Available package
-
-| **Package**                                                                                             | **Platforms** | **Description**                                          |
-| :------------------------------------------------------------------------------------------------------ | :------------ | :------------------------------------------------------- |
-| [UniversalDsc.Resource.Windows.User](https://www.nuget.org/packages/UniversalDsc.Resource.Windows.User) | Windows       | DSC v3 resource for managing Windows local user accounts |
+- Support for `get`, `set`, `delete`, and `export` operations
 
 ## Usage
 

@@ -1,5 +1,5 @@
 @{
-    # This is a PowerShell data file that contains test data for the OpenDsc.Resource.Windows.User utility
+    # This is a PowerShell data file that contains test data for the UniversalDsc.Resource.Windows.User utility
     testCases = @(
         @{
             operation = 'get'

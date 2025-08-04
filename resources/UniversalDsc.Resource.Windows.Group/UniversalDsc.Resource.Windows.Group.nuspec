@@ -1,0 +1,48 @@
+<?xml version="1.0"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2010/07/nuspec.xsd">
+  <metadata>
+    <id>UniversalDsc.Resource.Windows.Group</id>
+    <version>0.1.0</version>
+    <title>
+    </title>
+    <authors>Gijs Reijn</authors>
+    <license type="expression">MIT</license>
+    <licenseUrl>https://licenses.nuget.org/MIT</licenseUrl>
+    <icon>icon.png</icon>
+    <iconUrl>https://raw.githubusercontent.com/dscv3-universal-resources/dscv3-universal-resources/refs/heads/main/resources/UniversalDsc.Resource.Windows.Group/icon_512x512.png</iconUrl>
+    <projectUrl>https://github.com/dscv3-universal-resources/dscv3-universal-resources</projectUrl>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <copyright>© 2025 Gijs Reijn. All rights reserved.</copyright>
+    <summary>A Universal DSC Resource for managing Windows local groups. Supports creating, updating, and deleting local groups with member management capabilities including adding and removing specific users or groups.</summary>
+    <description>Universal DSC Resource for Windows Groups provides management of Windows local groups through Microsoft Desired State Configuration (DSC) v3.
+
+Features:
+- Create, update, and delete local Windows groups
+- Manage group properties: name, description, and membership
+- Configure group membership: add specific members, include/exclude members
+- Full integration with DSC v3 framework
+- Support for `get`, `set`, `test`, and `export` operations
+
+This resource allows you to declaratively manage Windows local groups ensuring they match your desired configuration state.
+
+Usage:
+windows-group.exe config get --input '{"groupName":"testgroup"}'
+windows-group.exe config set --input '{"groupName":"testgroup","description":"Test group","members":["Administrator"]}'
+windows-group.exe config test --input '{"groupName":"testgroup"}'</description>
+    <releaseNotes>Added icon to the package</releaseNotes>
+    <readme>README.md</readme>
+    <language>en-US</language>
+    <tags>DSC Windows Groups Management</tags>
+    <repository type="git" url="https://github.com/dscv3-universal-resources/dscv3-universal-resources.git" />
+    <packageTypes>
+      <packageType name="DotnetTool" />
+    </packageTypes>
+  </metadata>
+  <files>
+    <file src="README.md" target="README.md" />
+    <file src="icon.png" target="icon.png" />
+    <file src="..\..\LICENSE" target="LICENSE" />
+    <file src="..\..\output\nupkgs\**\*.*" target="tools\net9.0\any" />
+    <file src="DotnetToolSettings.xml" target="tools\net9.0\any" />
+  </files>
+</package>

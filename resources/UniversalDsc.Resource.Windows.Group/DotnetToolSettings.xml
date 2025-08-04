@@ -1,0 +1,5 @@
+<DotNetCliTool Version="1">
+    <Commands>
+        <Command Name="windows-group" EntryPoint="windows-group.dll" Runner="dotnet"/>
+    </Commands>
+</DotNetCliTool>

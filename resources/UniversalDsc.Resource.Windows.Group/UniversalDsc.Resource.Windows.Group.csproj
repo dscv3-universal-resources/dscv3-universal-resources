@@ -1,0 +1,26 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <Version>0.1.0</Version>
+    <AssemblyName>windows-group</AssemblyName>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net9.0-windows</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <ApplicationIcon>Program.ico</ApplicationIcon>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="System.DirectoryServices.AccountManagement" Version="9.0.6" />
+    <PackageReference Include="OpenDsc.Resource.CommandLine" Version="0.2.0" />
+  </ItemGroup>
+
+  <Target Name="RunAfterPublish" AfterTargets="Publish">
+    <PropertyGroup>
+      <OutputFileName>$(TargetName).dsc.resource.json</OutputFileName>
+    </PropertyGroup>
+
+    <Exec Command="$(PublishDir)$(TargetName).exe manifest &gt; $(PublishDir)$(OutputFileName)" />
+  </Target>
+
+</Project>
