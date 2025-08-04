@@ -77,6 +77,6 @@ dsc config get --file user.dsc.config.yaml
 - **passwordChangeNotAllowed** (optional): Whether the user can change their password (true/false)
 - **exist** (optional): Whether the user should exist (true/false, defaults to true)
 
-## Additional Information
+## Additional information
 
 - [Install Microsoft DSC v3](https://learn.microsoft.com/en-us/powershell/dsc/overview?view=dsc-3.0#install-dsc-on-windows-with-winget)
